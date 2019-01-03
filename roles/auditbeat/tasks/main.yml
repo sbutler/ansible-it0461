@@ -1,0 +1,52 @@
+- import_tasks: redhat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: install auditbeat
+  package:
+      name: auditbeat
+      state: present
+- name: remove default auditd rules
+  file:
+      path: "/etc/auditbeat/audit.rules.d/{{ item }}"
+      state: absent
+  with_items:
+      - sample-rules-linux-32bit.conf
+      - sample-rules-linux-64bit.conf
+
+- name: enable auditbeat
+  service:
+      name: auditbeat
+      enabled: yes
+      state: started
+
+- name: copy auditbeat.yml general
+  copy:
+      src: ../files/auditbeat.general.yml
+      dest: /etc/auditbeat/auditbeat.yml.d/
+      owner: root
+      group: root
+      mode: 0600
+- name: copy auditbeat.yml file output
+  copy:
+      src: ../files/auditbeat.output-file.yml
+      dest: /etc/auditbeat/auditbeat.yml.d/
+      owner: root
+      group: root
+      mode: 0600
+- name: assemble auditbeat.yml
+  assemble:
+      src: /etc/auditbeat/auditbeat.yml.d/
+      dest: /etc/auditbeat/auditbeat.yml
+      owner: root
+      group: root
+      mode: 0600
+  notify: restart auditbeat
+
+- name: copy IT04.6.1 audit.rules
+  copy:
+      src: ../files/00_it0461.conf
+      dest: /etc/auditbeat/audit.rules.d/00_it0461.conf
+      owner: root
+      group: root
+      mode: 0644
+  notify: restart auditbeat
