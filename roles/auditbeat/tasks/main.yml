@@ -15,6 +15,14 @@
       - sample-rules-linux-32bit.conf
       - sample-rules-linux-64bit.conf
 
+- name: disable auditd
+  service:
+      name: auditd
+      enabled: no
+      state: stopped
+  ignore_errors: true
+- name: kill all auditd processes
+  shell: "killall auditd || :"
 - name: enable auditbeat
   service:
       name: auditbeat
