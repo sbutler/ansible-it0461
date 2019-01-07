@@ -15,12 +15,17 @@
 -w /etc/audisp/ -p wa -k audispconfig
 
 ## Monitor for use of audit management tools
--w /sbin/auditctl -p x -k audittools
--w /sbin/auditd -p x -k audittools
+{% for f in auditd_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k audittools
+{% endfor %}
 
 ## Auditbeat
 -w /etc/auditbeat/auditbeat.yml -p wa -k auditbeatconfig
 -w /etc/auditbeat/audit.rules.d/ -p wa -k auditbeatconfig
+-w /var/log/auditbeat/ -k auditbeatlog
+{% for f in auditbeat_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k auditbeattools
+{% endfor %}
 
 # Filters ---------------------------------------------------------------------
 
@@ -39,8 +44,9 @@
 -a never,user -F subj_type=crond_t
 -a exit,never -F subj_type=crond_t
 
-## This prevents chrony from overwhelming the logs
+## This prevents timesync from overwhelming the logs
 -a never,exit -F arch=b64 -S adjtimex -F auid=unset -F uid=chrony -F subj_type=chronyd_t
+-a never,exit -F arch=b64 -S adjtimex -F auid=unset -F uid=systemd-timesync
 
 ## This is not very interesting and wastes a lot of space if the server is public facing
 -a always,exclude -F msgtype=CRYPTO_KEY_USER
@@ -89,21 +95,20 @@
 
 ## Sudoers file changes
 # IT04.6.1 F
--w /etc/sudoers -p wa -k actions
--w /etc/sudoers.d/ -p wa -k actions
+-w /etc/sudoers -p rwa -k actions
+-w /etc/sudoers.d/ -p rwa -k actions
 
 ## Passwd
 # IT04.6.1 K
--w /usr/bin/passwd -p x -k passwd_modification
+{% for f in passwd_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k passwd_modification
+{% endfor %}
 
 ## Tools to change group identifiers
 # IT04.6.1 B, C
--w /usr/sbin/groupadd -p x -k group_modification
--w /usr/sbin/groupmod -p x -k group_modification
--w /usr/sbin/addgroup -p x -k group_modification
--w /usr/sbin/useradd -p x -k user_modification
--w /usr/sbin/usermod -p x -k user_modification
--w /usr/sbin/adduser -p x -k user_modification
+{% for f in usergroup_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k {% if 'group' in f.path %}group{% else %}user{% endif %}_modification
+{% endfor %}
 
 ## Login configuration and information
 # IT04.6.1 A
@@ -122,6 +127,8 @@
 -w /etc/hosts -p wa -k network_modifications
 -w /etc/sysconfig/network -p wa -k network_modifications
 -w /etc/network/ -p wa -k network
+-w /etc/netplan/ -p wa -k network
+-w /etc/networkd-dispatcher/ -p wa -k network
 -a always,exit -F dir=/etc/NetworkManager/ -F perm=wa -k network_modifications
 ### Changes to issue
 -w /etc/issue -p wa -k etcissue
@@ -130,8 +137,9 @@
 ## System startup scripts
 # IT04.6.1 H
 -w /etc/inittab -p wa -k init
--w /etc/init.d/ -p wa -k init
--w /etc/init/ -p wa -k init
+{% for d in startupscript_dirs.files if d.isdir %}
+-w {{ d.path }}/ -p wa -k init
+{% endfor %}
 
 ## Pam configuration
 # IT04.6.1 F
@@ -146,9 +154,11 @@
 -w /etc/ssh/sshd_config -k sshd
 
 # Systemd
-# IT04.6.1 I
--w /bin/systemctl -p x -k systemd
+# IT04.6.1 I, H
 -w /etc/systemd/ -p wa -k systemd
+{% for f in systemd_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k systemd
+{% endfor %}
 
 ## SELinux events that modify the system's Mandatory Access Controls (MAC)
 # IT04.6.1 F
@@ -167,16 +177,15 @@
 
 ## Process ID change (switching accounts) applications
 # IT04.6.1 G
--w /bin/su -p x -k priv_esc
--w /usr/bin/sudo -p x -k priv_esc
--w /etc/sudoers -p rw -k priv_esc
+{% for f in susudo_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k priv_esc
+{% endfor %}
 
 ## Power state
 # IT04.6.1 I
--w /sbin/shutdown -p x -k power
--w /sbin/poweroff -p x -k power
--w /sbin/reboot -p x -k power
--w /sbin/halt -p x -k power
+{% for f in powerstate_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p -x -k power
+{% endfor %}
 
 ## Session initiation information
 # IT04.6.1 A
@@ -217,8 +226,9 @@
 
 ## Sbin suspicious activity
 # IT04.6.1 J, M
--w /sbin/iptables -p x -k network_modifications
--w /sbin/ifconfig -p x -k network_modifications
+{% for f in network_bins.files if (f.isreg or f.islnk) %}
+-w {{ f.path }} -p x -k network_modifications
+{% endfor %}
 
 ## Injection
 ### These rules watch for code injection by the ptrace facility.
@@ -233,7 +243,7 @@
 -a always,exit -F arch=b32 -S ptrace -F a0=0x6 -k register_injection
 -a always,exit -F arch=b64 -S ptrace -F a0=0x6 -k register_injection
 
-## Remove them if the cause to much volumen in your einvironment
+## Remove them if the cause to much volume in your einvironment
 
 ## Root command executions
 # IT04.6.1 G

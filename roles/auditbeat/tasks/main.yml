@@ -1,5 +1,7 @@
 - import_tasks: redhat.yml
   when: ansible_os_family == 'RedHat'
+- import_tasks: debian.yml
+  when: ansible_os_family == 'Debian'
 
 - name: install auditbeat
   package:
@@ -42,9 +44,82 @@
       mode: 0600
   notify: restart auditbeat
 
-- name: copy IT04.6.1 audit.rules
-  copy:
-      src: ../files/00_it0461.conf
+- name: find auditd binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ auditctl, auditd ]
+  register: auditd_bins
+- name: find auditbeat binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ auditbeat ]
+  register: auditbeat_bins
+- name: find passwd binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ passwd ]
+  register: passwd_bins
+- name: find user and group mod binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ groupadd, groupmod, addgroup, useradd, usermod, adduser ]
+  register: usergroup_bins
+- name: find startup script directories
+  find:
+      paths: [ /etc ]
+      recurse: no
+      follow: no
+      file_type: directory
+      patterns: [ init.d, init, rc.d, rc0.d, rc1.d, rc2.d, rc3.d, rc4.d, rc5.d, rc6.d, rcS.d ]
+  register: startupscript_dirs
+- name: find systemd binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ systemctl ]
+  register: systemd_bins
+- name: find su and sudo binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ su, sudo ]
+  register: susudo_bins
+- name: find power state binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ shutdown, poweroff, reboot, halt ]
+  register: powerstate_bins
+- name: find network binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try ]
+  register: network_bins
+
+- name: generate IT04.6.1 audit.rules
+  template:
+      src: ../templates/audit-rules.00_it0461.conf.j2
       dest: /etc/auditbeat/audit.rules.d/00_it0461.conf
       owner: root
       group: root
