@@ -1,6 +1,6 @@
 output.file:
   path: "/var/log/auditbeat"
-  filename: events
+  filename: events.json
   #rotate_every_kb: 10240
   #number_of_files: 7
   #permissions: 0600
