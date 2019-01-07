@@ -44,6 +44,9 @@
       mode: 0600
   notify: restart auditbeat
 
+- name: get system users
+  getent:
+      database: passwd
 - name: find auditd binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
