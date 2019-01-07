@@ -57,7 +57,7 @@
       database: passwd
 - name: find auditd binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -65,7 +65,7 @@
   register: auditd_bins
 - name: find auditbeat binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -73,7 +73,7 @@
   register: auditbeat_bins
 - name: find passwd binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -81,7 +81,7 @@
   register: passwd_bins
 - name: find user and group mod binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -97,7 +97,7 @@
   register: startupscript_dirs
 - name: find systemd binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -105,7 +105,7 @@
   register: systemd_bins
 - name: find su and sudo binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -113,7 +113,7 @@
   register: susudo_bins
 - name: find power state binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
@@ -121,7 +121,7 @@
   register: powerstate_bins
 - name: find network binaries
   find:
-      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/lib, /usr/local/lib32, /usr/local/lib64, /usr/local/libexec, /usr/lib, /usr/lib32, /usr/lib64, /usr/libexec, /lib, /lib32, /lib64, /libexec ]
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
