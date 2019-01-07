@@ -10,3 +10,8 @@
       gpgcheck: yes
       gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
       enabled: yes
+
+- name: install audit
+  package:
+      name: audit
+      state: present
