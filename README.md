@@ -7,6 +7,7 @@ section 4.6.1 Logging.
 It has been tested on these platforms:
 
 - CentOS: 7.x
+- Debian: 9.x (stretch)
 - openSUSE Leap: 15.x
 - Ubuntu: 18.04.x
 

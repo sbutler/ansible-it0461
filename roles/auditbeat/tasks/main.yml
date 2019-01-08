@@ -143,11 +143,11 @@
   register: network_bins
 - name: find network configurations
   find:
-      paths: [ /etc, /etc/sysconfig ]
+      paths: [ /etc, /etc/sysconfig, /etc/default ]
       recurse: no
       follow: no
       file_type: any
-      patterns: [ network, network-scripts, netplan, networkd-dispatcher, NetworkManager, wicked ]
+      patterns: [ network, network-scripts, networking, netplan, networkd-dispatcher, NetworkManager, wicked ]
   register: network_confs
 - name: find crontab spool
   find:
