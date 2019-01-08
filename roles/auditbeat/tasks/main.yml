@@ -127,6 +127,14 @@
       file_type: any
       patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try ]
   register: network_bins
+- name: find network configurations
+  find:
+      paths: [ /etc, /etc/sysconfig ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ network, network-scripts, netplan, networkd-dispatcher, NetworkManager ]
+  register: network_confs
 
 - name: generate IT04.6.1 audit.rules
   template:

@@ -129,11 +129,11 @@
 -a always,exit -F arch=b64 -S sethostname -S setdomainname -k network_modifications
 ### Changes to other files
 -w /etc/hosts -p wa -k network_modifications
--w /etc/sysconfig/network -p wa -k network_modifications
--w /etc/network/ -p wa -k network
--w /etc/netplan/ -p wa -k network
--w /etc/networkd-dispatcher/ -p wa -k network
--a always,exit -F dir=/etc/NetworkManager/ -F perm=wa -k network_modifications
+-w /etc/hosts.allow -p wa -k network_modifications
+-w /etc/hosts.deny -p wa -k network_modifications
+{% for f in network_confs.files if (f.isreg or f.isdir) %}
+-w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k network_modifications
+{% endfor %}
 ### Changes to issue
 -w /etc/issue -p wa -k etcissue
 -w /etc/issue.net -p wa -k etcissue
