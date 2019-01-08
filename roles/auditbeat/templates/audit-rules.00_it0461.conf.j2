@@ -165,17 +165,6 @@
 # IT04.6.1 F
 -w /etc/selinux/ -p wa -k mac_policy
 
-## Critical elements access failures
-# IT04.6.1 G
--a exit,always -F arch=b64 -S open -F dir=/etc -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/bin -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/sbin -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/usr/bin -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/usr/sbin -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/var -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/home -F success=0 -k unauthedfileaccess
--a exit,always -F arch=b64 -S open -F dir=/srv -F success=0 -k unauthedfileaccess
-
 ## Process ID change (switching accounts) applications
 # IT04.6.1 G
 {% for f in susudo_bins.files if f.isreg %}
