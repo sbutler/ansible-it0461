@@ -2,6 +2,8 @@
   when: ansible_os_family == 'RedHat'
 - import_tasks: debian.yml
   when: ansible_os_family == 'Debian'
+- import_tasks: suse.yml
+  when: ansible_os_family == 'Suse'
 
 - name: install auditbeat
   package:
@@ -137,7 +139,7 @@
       recurse: no
       follow: no
       file_type: any
-      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try ]
+      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try, wicked, ethtool ]
   register: network_bins
 - name: find network configurations
   find:
@@ -145,7 +147,7 @@
       recurse: no
       follow: no
       file_type: any
-      patterns: [ network, network-scripts, netplan, networkd-dispatcher, NetworkManager ]
+      patterns: [ network, network-scripts, netplan, networkd-dispatcher, NetworkManager, wicked ]
   register: network_confs
 - name: find crontab spool
   find:
