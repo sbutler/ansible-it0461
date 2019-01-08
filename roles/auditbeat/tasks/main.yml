@@ -55,6 +55,18 @@
 - name: get system users
   getent:
       database: passwd
+- name: read the UID_MIN
+  command:
+  args:
+      argv: [ 'sed', '-rne', 's/^UID_MIN[[:space:]]+([[:digit:]]+).*$/\1/ p', '/etc/login.defs' ]
+      warn: false
+  register: uidmin_cmd
+  check_mode: no
+  changed_when: false
+- name: set the uid_min
+  set_fact:
+      uid_min: "{{ uidmin_cmd.stdout|default(500, true) }}"
+
 - name: find auditd binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
