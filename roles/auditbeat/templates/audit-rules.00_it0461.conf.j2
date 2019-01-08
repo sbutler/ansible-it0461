@@ -15,7 +15,7 @@
 -w /etc/audisp/ -p wa -k audispconfig
 
 ## Monitor for use of audit management tools
-{% for f in auditd_bins.files if (f.isreg or f.islnk) %}
+{% for f in auditd_bins.files if f.isreg %}
 -w {{ f.path }} -p x -k audittools
 {% endfor %}
 
@@ -23,7 +23,7 @@
 -w /etc/auditbeat/auditbeat.yml -p wa -k auditbeatconfig
 -w /etc/auditbeat/audit.rules.d/ -p wa -k auditbeatconfig
 -w /var/log/auditbeat/ -k auditbeatlog
-{% for f in auditbeat_bins.files if (f.isreg or f.islnk) %}
+{% for f in auditbeat_bins.files if f.isreg %}
 -w {{ f.path }} -p x -k auditbeattools
 {% endfor %}
 
