@@ -87,7 +87,11 @@
 -w /etc/cron.monthly/ -p wa -k cron
 -w /etc/cron.weekly/ -p wa -k cron
 -w /etc/crontab -p wa -k cron
--w /var/spool/cron/crontabs/ -k cron
+{% for d in crontab_spool.files if d.isdir %}
+-w {{ d.path }}/ -p wa -k cron
+{% else %}
+-w /var/spool/cron/ -p wa -k cron
+{% endfor %}
 
 ## User, group, password databases
 # IT04.6.1 B, C

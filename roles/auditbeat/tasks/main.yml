@@ -147,6 +147,14 @@
       file_type: any
       patterns: [ network, network-scripts, netplan, networkd-dispatcher, NetworkManager ]
   register: network_confs
+- name: find crontab spool
+  find:
+      paths: [ /var/spool/cron ]
+      recurse: no
+      follow: no
+      file_type: directory
+      patterns: [ crontabs, tabs ]
+  register: crontab_spool
 
 - name: generate IT04.6.1 audit.rules
   template:
