@@ -92,6 +92,9 @@
 {% else %}
 -w /var/spool/cron/ -p wa -k cron
 {% endfor %}
+{% for d in atjob_spool.files if d.isdir %}
+-w {{ d.path }}/ -p wa -k atjob
+{% endfor %}
 
 ## User, group, password databases
 # IT04.6.1 B, C
