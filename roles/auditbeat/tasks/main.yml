@@ -5,16 +5,16 @@
 - import_tasks: suse.yml
   when: ansible_os_family == 'Suse'
 
-- name: install auditbeat
+- name: auditbeat - install
   package:
       name: auditbeat
       state: present
-- name: remove SysV startup when systemd is being used
+- name: auditbeat - remove SysV startup when systemd is being used
   file:
       path: "/etc/init.d/auditbeat"
       state: absent
   when: ansible_service_mgr == 'systemd'
-- name: remove default auditd rules
+- name: auditbeat - remove default audit rules
   file:
       path: "/etc/auditbeat/audit.rules.d/{{ item }}"
       state: absent
@@ -22,35 +22,35 @@
       - sample-rules-linux-32bit.conf
       - sample-rules-linux-64bit.conf
 
-- name: disable auditd
+- name: auditbeat - disable auditd
   service:
       name: auditd
       enabled: no
       state: stopped
   ignore_errors: true
-- name: kill all auditd processes
+- name: auditbeat - kill all auditd processes
   shell: "killall auditd || :"
-- name: enable auditbeat
+- name: auditbeat - enable
   service:
       name: auditbeat
       enabled: yes
       state: started
 
-- name: copy auditbeat.yml general
+- name: auditbeat - copy general configuration
   copy:
       src: ../files/auditbeat.general.yml
       dest: /etc/auditbeat/auditbeat.yml.d/
       owner: root
       group: root
       mode: 0600
-- name: copy auditbeat.yml file output
+- name: auditbeat - copy file output configuration
   copy:
       src: ../files/auditbeat.output-file.yml
       dest: /etc/auditbeat/auditbeat.yml.d/
       owner: root
       group: root
       mode: 0600
-- name: assemble auditbeat.yml
+- name: auditbeat - assemble auditbeat.yml
   assemble:
       src: /etc/auditbeat/auditbeat.yml.d/
       dest: /etc/auditbeat/auditbeat.yml
@@ -59,10 +59,10 @@
       mode: 0600
   notify: restart auditbeat
 
-- name: get system users
+- name: auditbeat - get system users
   getent:
       database: passwd
-- name: read the UID_MIN
+- name: auditbeat - read the UID_MIN
   command:
   args:
       argv: [ 'sed', '-rne', 's/^UID_MIN[[:space:]]+([[:digit:]]+).*$/\1/ p', '/etc/login.defs' ]
@@ -70,11 +70,11 @@
   register: uidmin_cmd
   check_mode: no
   changed_when: false
-- name: set the uid_min
+- name: auditbeat - set the uid_min
   set_fact:
       uid_min: "{{ uidmin_cmd.stdout|default(500, true) }}"
 
-- name: find auditd binaries
+- name: auditbeat - find auditd binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -82,7 +82,7 @@
       file_type: any
       patterns: [ auditctl, auditd ]
   register: auditd_bins
-- name: find auditbeat binaries
+- name: auditbeat - find auditbeat binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -90,7 +90,7 @@
       file_type: any
       patterns: [ auditbeat ]
   register: auditbeat_bins
-- name: find passwd binaries
+- name: auditbeat - find passwd binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -98,7 +98,7 @@
       file_type: any
       patterns: [ passwd ]
   register: passwd_bins
-- name: find user and group mod binaries
+- name: auditbeat - find user and group mod binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -106,7 +106,7 @@
       file_type: any
       patterns: [ groupadd, groupmod, addgroup, useradd, usermod, adduser ]
   register: usergroup_bins
-- name: find startup script directories
+- name: auditbeat - find startup script directories
   find:
       paths: [ /etc ]
       recurse: no
@@ -114,7 +114,7 @@
       file_type: directory
       patterns: [ init.d, init, rc.d, rc0.d, rc1.d, rc2.d, rc3.d, rc4.d, rc5.d, rc6.d, rcS.d ]
   register: startupscript_dirs
-- name: find systemd binaries
+- name: auditbeat - find systemd binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -122,7 +122,7 @@
       file_type: any
       patterns: [ systemctl ]
   register: systemd_bins
-- name: find su and sudo binaries
+- name: auditbeat - find su and sudo binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -130,7 +130,7 @@
       file_type: any
       patterns: [ su, sudo ]
   register: susudo_bins
-- name: find power state binaries
+- name: auditbeat - find power state binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -138,7 +138,7 @@
       file_type: any
       patterns: [ shutdown, poweroff, reboot, halt ]
   register: powerstate_bins
-- name: find network binaries
+- name: auditbeat - find network binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
@@ -146,7 +146,7 @@
       file_type: any
       patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try, wicked, ethtool ]
   register: network_bins
-- name: find network configurations
+- name: auditbeat - find network configurations
   find:
       paths: [ /etc, /etc/sysconfig, /etc/default ]
       recurse: no
@@ -154,7 +154,7 @@
       file_type: any
       patterns: [ network, network-scripts, networking, netplan, networkd-dispatcher, NetworkManager, wicked ]
   register: network_confs
-- name: find crontab spool
+- name: auditbeat - find crontab spool
   find:
       paths: [ /var/spool/cron ]
       recurse: no
@@ -162,7 +162,7 @@
       file_type: directory
       patterns: [ crontabs, tabs ]
   register: crontab_spool
-- name: find atjob spool
+- name: auditbeat - find atjob spool
   find:
       paths: [ /var/spool, /var/spool/cron ]
       recurse: no
@@ -171,7 +171,7 @@
       patterns: [ atjobs, at ]
   register: atjob_spool
 
-- name: generate IT04.6.1 audit.rules
+- name: auditbeat - generate IT04.6.1 audit rules
   template:
       src: ../templates/audit-rules.00_it0461.conf.j2
       dest: /etc/auditbeat/audit.rules.d/00_it0461.conf
