@@ -9,6 +9,11 @@
   package:
       name: auditbeat
       state: present
+- name: remove SysV startup when systemd is being used
+  file:
+      path: "/etc/init.d/auditbeat"
+      state: absent
+  when: ansible_service_mgr == 'systemd'
 - name: remove default auditd rules
   file:
       path: "/etc/auditbeat/audit.rules.d/{{ item }}"
