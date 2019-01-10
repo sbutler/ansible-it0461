@@ -5,6 +5,14 @@
 - import_tasks: suse.yml
   when: ansible_os_family == 'Suse'
 
+- name: auditbeat - get installed packages
+  package_facts:
+- name: auditbeat - set the kernel version
+  set_fact:
+      kernel_ver: "{{ ansible_kernel|regex_replace('^(\\d+(\\.\\d+)*)(-.+)?$', '\\1') }}"
+- debug:
+    var: kernel_ver
+
 - name: auditbeat - install
   package:
       name: auditbeat
@@ -13,7 +21,7 @@
   file:
       path: "/etc/init.d/auditbeat"
       state: absent
-  when: ansible_service_mgr == 'systemd'
+  when: "'systemd' in packages"
 - name: auditbeat - remove default audit rules
   file:
       path: "/etc/auditbeat/audit.rules.d/{{ item }}"
@@ -122,6 +130,7 @@
       file_type: any
       patterns: [ systemctl ]
   register: systemd_bins
+  when: "'systemd' in packages"
 - name: auditbeat - find su and sudo binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
@@ -154,6 +163,24 @@
       file_type: any
       patterns: [ network, network-scripts, networking, netplan, networkd-dispatcher, NetworkManager, wicked ]
   register: network_confs
+- name: auditbeat - find firewalld binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ firewall-cmd, firewall-offline-cmd, firewalld ]
+  register: firewalld_bins
+  when: "'firewalld' in packages"
+- name: auditbeat - find firewalld configurations
+  find:
+      paths: [ /etc, /etc/sysconfig, /etc/default, /usr/lib ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ firewalld ]
+  register: firewalld_confs
+  when: "'firewalld' in packages"
 - name: auditbeat - find crontab spool
   find:
       paths: [ /var/spool/cron ]

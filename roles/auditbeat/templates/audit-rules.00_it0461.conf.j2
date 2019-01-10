@@ -72,8 +72,8 @@
 
 ## Time
 # IT04.6.1 N
--a exit,always -F arch=b32 -S adjtimex -S settimeofday -S clock_adjtime -S clock_settime -S stime -k time
--a exit,always -F arch=b64 -S adjtimex -S settimeofday -S clock_adjtime -S clock_settime -S stime -k time
+-a exit,always -F arch=b32 -S adjtimex -S settimeofday {% if kernel_ver is version('2.6.39', 'ge') %}-S clock_adjtime{% endif %} -S clock_settime -k time
+-a exit,always -F arch=b64 -S adjtimex -S settimeofday {% if kernel_ver is version('2.6.39', 'ge') %}-S clock_adjtime{% endif %} -S clock_settime -k time
 ### Local time zone
 -w /etc/localtime -p wa -k localtime
 
@@ -141,9 +141,31 @@
 {% for f in network_confs.files if (f.isreg or f.isdir) %}
 -w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k network_modifications
 {% endfor %}
+{% if kernel_ver is version('3.18', 'ge') %}
+### Calls to bpf
+-a always,exit -F arch=b32 -S bpf -k network_modifications
+-a always,exit -F arch=b64 -S bpf -k network_modifications
+{% endif %}
 ### Changes to issue
 -w /etc/issue -p wa -k etcissue
 -w /etc/issue.net -p wa -k etcissue
+
+## Network commands
+# IT04.6.1 J, M
+{% for f in network_bins.files if f.isreg %}
+-w {{ f.path }} -p x -k network_modifications
+{% endfor %}
+
+{% if 'firewalld' in packages %}
+## Firewalld
+# IP04.6.1 J, M
+{% for f in firewalld_confs.files if (f.isreg or f.isdir) %}
+-w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k firewall_modifications
+{% endfor %}
+{% for f in firewalld_bins.files if f.isreg %}
+-w {{ f.path }} -p x -k firewall_modifications
+{% endfor %}
+{% endif %}
 
 ## System startup scripts
 # IT04.6.1 H
@@ -161,12 +183,16 @@
 # IT04.6.1 E, F
 -w /etc/ssh/sshd_config -k sshd
 
+{% if 'systemd' in packages %}
 # Systemd
 # IT04.6.1 I, H
 -w /etc/systemd/ -p wa -k systemd
+-w /usr/lib/systemd/system -p wa -k systemd
+-w /usr/lib/systemd/user -p wa -k systemd
 {% for f in systemd_bins.files if f.isreg %}
 -w {{ f.path }} -p x -k systemd
 {% endfor %}
+{% endif %}
 
 ## SELinux events that modify the system's Mandatory Access Controls (MAC)
 # IT04.6.1 F
@@ -177,6 +203,57 @@
 {% for f in susudo_bins.files if f.isreg %}
 -w {{ f.path }} -p x -k priv_esc
 {% endfor %}
+# Group or Linux Capabilities change
+-a always,exit -F arch=b32 -S capset -S setgroups -k priv_esc
+-a always,exit -F arch=b64 -S capset -S setgroups -k priv_esc
+# Look for prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, ...)
+-a always,exit -F arch=b32 -S prctl -F a0=47 -F a1=2 -k priv_esc
+-a always,exit -F arch=b64 -S prctl -F a0=47 -F a1=2 -k priv_esc
+# Changing the process GID/UID to root, first argument
+-a always,exit -F arch=b32 -S setgid -S setregid -S setresgid -S setfsgid -F a0=0 -k priv_esc
+-a always,exit -F arch=b64 -S setgid -S setregid -S setresgid -S setfsgid -F a0=0 -k priv_esc
+-a always,exit -F arch=b32 -S setuid -S setreuid -S setresuid -S setfsuid -F a0=0 -k priv_esc
+-a always,exit -F arch=b64 -S setuid -S setreuid -S setresuid -S setfsuid -F a0=0 -k priv_esc
+# Changing the process GID/UID to root, second argument
+-a always,exit -F arch=b32 -S setregid -S setresgid -F a1=0 -k priv_esc
+-a always,exit -F arch=b64 -S setregid -S setresgid -F a1=0 -k priv_esc
+-a always,exit -F arch=b32 -S setreuid -S setresuid -F a1=0 -k priv_esc
+-a always,exit -F arch=b64 -S setreuid -S setresuid -F a1=0 -k priv_esc
+# Changing the process GID/UID to root, third argument
+-a always,exit -F arch=b32 -S setresgid -F a2=0 -k priv_esc
+-a always,exit -F arch=b64 -S setresgid -F a2=0 -k priv_esc
+-a always,exit -F arch=b32 -S setresuid -F a2=0 -k priv_esc
+-a always,exit -F arch=b64 -S setresuid -F a2=0 -k priv_esc
+
+## Privileged operation
+# IT04.6.1 G
+-a always,exit -F arch=b32 -S mlock {% if kernel_ver is version('4.4', 'ge') %}-S mlock2{% endif %} -S mlockall -S munlock -S munlockall -S mount -S umount2 -S swapon -S swapoff -S setrlimit -S create_module -S delete_module -S init_module {% if kernel_ver is version('3.8', 'ge') %}-S finit_module{% endif %} -k priv_op
+-a always,exit -F arch=b64 -S mlock {% if kernel_ver is version('4.4', 'ge') %}-S mlock2{% endif %} -S mlockall -S munlock -S munlockall -S mount -S umount2 -S swapon -S swapoff -S setrlimit -S create_module -S delete_module -S init_module {% if kernel_ver is version('3.8', 'ge') %}-S finit_module{% endif %} -k priv_op
+# mmap with MAP_LOCKED set
+-a always,exit -F arch=b32 -S mmap -F a3&0x2000 -k priv_op
+-a always,exit -F arch=b64 -S mmap -F a3&0x2000 -k priv_op
+# shmctl with SHM_LOCK or SHM_UNLOCK, where obj_euid!=euid
+-a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=11 -C obj_uid!=euid -k priv_op
+-a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=12 -C obj_uid!=euid -k priv_op
+-a always,exit -F arch=b64 -S shmctl       -F a1=11 -C obj_uid!=euid -k priv_op
+-a always,exit -F arch=b64 -S shmctl       -F a1=12 -C obj_uid!=euid -k priv_op
+# socket that's AF_PACKET or PF_PACKET
+-a always,exit -F arch=b32 -S socket -F a0=17 -k priv_op
+-a always,exit -F arch=b64 -S socket -F a0=17 -k priv_op
+# socket that's SOCK_RAW
+-a always,exit -F arch=b32 -S socket -F a1=3 -k priv_op
+-a always,exit -F arch=b64 -S socket -F a1=3 -k priv_op
+# socket that's SOCK_PACKET
+-a always,exit -F arch=b32 -S socket -F a1=10 -k priv_op
+-a always,exit -F arch=b64 -S socket -F a1=10 -k priv_op
+# quotactl for cmds that aren't Q_GETQUOTA, Q_GETNEXTQUOTA, Q_GETINFO, Q_GETFMT, Q_SYNC, Q_GETSTATS, Q_XGETQUOTA, Q_XGETNEXTQUOTA, Q_XGETQSTAT, Q_XGETQSTATV, Q_XQUOTARM
+-a always,exit -F arch=b32 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k priv_op
+-a always,exit -F arch=b64 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k priv_op
+{% if kernel_ver is version('2.6.36', 'ge') %}
+# prlimit where new_limit != 0
+-a always,exit -F arch=b32 -S prlimit64 -F a2!=0 -k priv_op
+-a always,exit -F arch=b64 -S prlimit64 -F a2!=0 -k priv_op
+{% endif %}
 
 ## Power state
 # IT04.6.1 I
@@ -190,18 +267,7 @@
 -w /var/log/btmp -p wa -k session
 -w /var/log/wtmp -p wa -k session
 
-## Discretionary Access Control (DAC) modifications
-# IT04.6.1 F
--a always,exit -F arch=b32 -S chmod -S chown -S fchmod -S fchmodat -S fchown -S fchownat -S fremovexattr -S fsetxattr -S lchown -S lremovexattr -S lsetxattr -S removexattr -S setxattr -F auid>={{ uid_min }} -F auid!=4294967295 -k perm_mod
--a always,exit -F arch=b64 -S chmod -S chown -S fchmod -S fchmodat -S fchown -S fchownat -S fremovexattr -S fsetxattr -S lchown -S lremovexattr -S lsetxattr -S removexattr -S setxattr -F auid>={{ uid_min }} -F auid!=4294967295 -k perm_mod
-
 # Special Rules ---------------------------------------------------------------
-
-## Sbin suspicious activity
-# IT04.6.1 J, M
-{% for f in network_bins.files if f.isreg %}
--w {{ f.path }} -p x -k network_modifications
-{% endfor %}
 
 ## Injection
 ### These rules watch for code injection by the ptrace facility.
@@ -220,5 +286,5 @@
 
 ## Root command executions
 # IT04.6.1 G
--a exit,always -F arch=b64 -F euid=0 -S execve -k rootcmd
--a exit,always -F arch=b32 -F euid=0 -S execve -k rootcmd
+# -a exit,always -F arch=b64 -F euid=0 -S execve -k rootcmd
+# -a exit,always -F arch=b32 -F euid=0 -S execve -k rootcmd
