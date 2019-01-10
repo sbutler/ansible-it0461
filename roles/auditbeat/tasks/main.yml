@@ -293,3 +293,11 @@
       group: root
       mode: 0644
   notify: restart auditbeat
+- name: auditbeat - generate IT04.6.1 audit syscall rules
+  template:
+      src: ../templates/audit-rules.99_it0461.conf.j2
+      dest: /etc/auditbeat/audit.rules.d/99_it0461.conf
+      owner: root
+      group: root
+      mode: 0644
+  notify: restart auditbeat
