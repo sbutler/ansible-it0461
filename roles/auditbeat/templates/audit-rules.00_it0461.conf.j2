@@ -72,8 +72,8 @@
 
 ## Time
 # IT04.6.1 N
--a exit,always -F arch=b32 -S adjtimex -S settimeofday -S clock_settime -k time
--a exit,always -F arch=b64 -S adjtimex -S settimeofday -S clock_settime -k time
+-a exit,always -F arch=b32 -S adjtimex -S settimeofday -S clock_adjtime -S clock_settime -S stime -k time
+-a exit,always -F arch=b64 -S adjtimex -S settimeofday -S clock_adjtime -S clock_settime -S stime -k time
 ### Local time zone
 -w /etc/localtime -p wa -k localtime
 
