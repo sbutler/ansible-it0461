@@ -7,11 +7,6 @@
 
 - name: auditbeat - get installed packages
   package_facts:
-- name: auditbeat - set the kernel version
-  set_fact:
-      kernel_ver: "{{ ansible_kernel|regex_replace('^(\\d+(\\.\\d+)*)(-.+)?$', '\\1') }}"
-- debug:
-    var: kernel_ver
 
 - name: auditbeat - install
   package:
@@ -81,6 +76,98 @@
 - name: auditbeat - set the uid_min
   set_fact:
       uid_min: "{{ uidmin_cmd.stdout|default(500, true) }}"
+
+- name: auditbeat - test for privilege escalation syscalls
+  audit_syscall_facts:
+      syscalls:
+          - capset
+          - setgroups
+          - setgroups32
+- name: auditbeat - set privilege escalation syscalls facts
+  set_fact:
+      privesc_syscalls_b32: "{{ syscalls_b32|sort }}"
+      privesc_syscalls_b64: "{{ syscalls_b64|sort }}"
+
+- name: auditbeat - test for privileged set user/group syscalls
+  audit_syscall_facts:
+      syscalls:
+          - setgid
+          - setgid32
+          - setregid
+          - setregid32
+          - setresgid
+          - setresgid32
+          - setfsgid
+          - setfsgid32
+          - setuid
+          - setuid32
+          - setreuid
+          - setreuid32
+          - setresuid
+          - setresuid32
+          - setfsuid
+          - setfsuid32
+- name: auditbeat - set privileged set user/group syscalls facts
+  set_fact:
+      ugidset_syscalls_b32: "{{ syscalls_b32|sort }}"
+      ugidset_syscalls_b64: "{{ syscalls_b64|sort }}"
+
+- name: auditbeat - test for other syscalls
+  audit_syscall_facts:
+      syscalls:
+          - bpf
+          - prctl
+          - prlimit64
+- name: auditbeat - set other syscalls facts
+  set_fact:
+      other_syscalls_b32: "{{ syscalls_b32|sort }}"
+      other_syscalls_b64: "{{ syscalls_b64|sort }}"
+
+- name: auditbeat - test for simple privileged syscalls
+  audit_syscall_facts:
+      syscalls:
+          - mlock
+          - mlock2
+          - mlockall
+          - munlock
+          - munlockall
+          - mount
+          - umount
+          - umount2
+          - swapon
+          - swapoff
+          - setrlimit
+          - create_module
+          - delete_module
+          - init_module
+          - finit_module
+          - kexec_file_load
+          - kexec_load
+- name: auditbeat - set simple syscalls facts
+  set_fact:
+      simple_syscalls_b32: "{{ syscalls_b32|sort }}"
+      simple_syscalls_b64: "{{ syscalls_b64|sort }}"
+
+- name: auditbeat - test for privileged time syscalls
+  audit_syscall_facts:
+      syscalls:
+          - adjtimex
+          - settimeofday
+          - clock_adjtime
+          - clock_settime
+          - stime
+- name: auditbeat - set time syscalls facts
+  set_fact:
+      time_syscalls_b32: "{{ syscalls_b32|sort }}"
+      time_syscalls_b64: "{{ syscalls_b64|sort }}"
+
+- name: auditbeat - test for mmap syscalls
+  audit_syscall_facts:
+      syscalls: [ mmap, mmap2 ]
+- name: auditbeat - set mmap syscalls facts
+  set_fact:
+      mmap_syscalls_b32: "{{ syscalls_b32|sort }}"
+      mmap_syscalls_b64: "{{ syscalls_b64|sort }}"
 
 - name: auditbeat - find auditd binaries
   find:

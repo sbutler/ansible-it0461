@@ -72,8 +72,8 @@
 
 ## Time
 # IT04.6.1 N
--a exit,always -F arch=b32 -S adjtimex -S settimeofday {% if kernel_ver is version('2.6.39', 'ge') %}-S clock_adjtime{% endif %} -S clock_settime -k time
--a exit,always -F arch=b64 -S adjtimex -S settimeofday {% if kernel_ver is version('2.6.39', 'ge') %}-S clock_adjtime{% endif %} -S clock_settime -k time
+-a exit,always -F arch=b32 {% for s in time_syscalls_b32 %}-S {{ s }} {% endfor %} -k time
+-a exit,always -F arch=b64 {% for s in time_syscalls_b64 %}-S {{ s }} {% endfor %} -k time
 ### Local time zone
 -w /etc/localtime -p wa -k localtime
 
@@ -141,9 +141,11 @@
 {% for f in network_confs.files if (f.isreg or f.isdir) %}
 -w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k network_modifications
 {% endfor %}
-{% if kernel_ver is version('3.18', 'ge') %}
 ### Calls to bpf
+{% if 'bpf' in other_syscalls_b32 %}
 -a always,exit -F arch=b32 -S bpf -k network_modifications
+{% endif %}
+{% if 'bpf' in other_syscalls_b64 %}
 -a always,exit -F arch=b64 -S bpf -k network_modifications
 {% endif %}
 ### Changes to issue
@@ -204,34 +206,32 @@
 -w {{ f.path }} -p x -k priv_esc
 {% endfor %}
 # Group or Linux Capabilities change
--a always,exit -F arch=b32 -S capset -S setgroups -k priv_esc
--a always,exit -F arch=b64 -S capset -S setgroups -k priv_esc
+-a always,exit -F arch=b32 {% for s in privesc_syscalls_b32 %}-S {{ s }} {% endfor %} -k priv_esc
+-a always,exit -F arch=b64 {% for s in privesc_syscalls_b64 %}-S {{ s }} {% endfor %} -k priv_esc
 # Look for prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, ...)
+{% if 'prctl' in other_syscalls_b32 %}
 -a always,exit -F arch=b32 -S prctl -F a0=47 -F a1=2 -k priv_esc
+{% endif %}
+{% if 'prctl' in other_syscalls_b64 %}
 -a always,exit -F arch=b64 -S prctl -F a0=47 -F a1=2 -k priv_esc
+{% endif %}
 # Changing the process GID/UID to root, first argument
--a always,exit -F arch=b32 -S setgid -S setregid -S setresgid -S setfsgid -F a0=0 -k priv_esc
--a always,exit -F arch=b64 -S setgid -S setregid -S setresgid -S setfsgid -F a0=0 -k priv_esc
--a always,exit -F arch=b32 -S setuid -S setreuid -S setresuid -S setfsuid -F a0=0 -k priv_esc
--a always,exit -F arch=b64 -S setuid -S setreuid -S setresuid -S setfsuid -F a0=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 %}-S {{ s }} {% endfor %} -F a0=0 -k priv_esc
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 %}-S {{ s }} {% endfor %} -F a0=0 -k priv_esc
 # Changing the process GID/UID to root, second argument
--a always,exit -F arch=b32 -S setregid -S setresgid -F a1=0 -k priv_esc
--a always,exit -F arch=b64 -S setregid -S setresgid -F a1=0 -k priv_esc
--a always,exit -F arch=b32 -S setreuid -S setresuid -F a1=0 -k priv_esc
--a always,exit -F arch=b64 -S setreuid -S setresuid -F a1=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
 # Changing the process GID/UID to root, third argument
--a always,exit -F arch=b32 -S setresgid -F a2=0 -k priv_esc
--a always,exit -F arch=b64 -S setresgid -F a2=0 -k priv_esc
--a always,exit -F arch=b32 -S setresuid -F a2=0 -k priv_esc
--a always,exit -F arch=b64 -S setresuid -F a2=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
 
 ## Privileged operation
 # IT04.6.1 G
--a always,exit -F arch=b32 -S mlock {% if kernel_ver is version('4.4', 'ge') %}-S mlock2{% endif %} -S mlockall -S munlock -S munlockall -S mount -S umount2 -S swapon -S swapoff -S setrlimit -S create_module -S delete_module -S init_module {% if kernel_ver is version('3.8', 'ge') %}-S finit_module{% endif %} -k priv_op
--a always,exit -F arch=b64 -S mlock {% if kernel_ver is version('4.4', 'ge') %}-S mlock2{% endif %} -S mlockall -S munlock -S munlockall -S mount -S umount2 -S swapon -S swapoff -S setrlimit -S create_module -S delete_module -S init_module {% if kernel_ver is version('3.8', 'ge') %}-S finit_module{% endif %} -k priv_op
+-a always,exit -F arch=b32 {% for s in simple_syscalls_b32 %}-S {{ s }} {% endfor %} -k priv_op
+-a always,exit -F arch=b64 {% for s in simple_syscalls_b64 %}-S {{ s }} {% endfor %} -k priv_op
 # mmap with MAP_LOCKED set
--a always,exit -F arch=b32 -S mmap -F a3&0x2000 -k priv_op
--a always,exit -F arch=b64 -S mmap -F a3&0x2000 -k priv_op
+-a always,exit -F arch=b32 {% for s in mmap_syscalls_b32 %}-S {{ s }} {% endfor %} -F a3&0x2000 -k priv_op
+-a always,exit -F arch=b64 {% for s in mmap_syscalls_b64 %}-S {{ s }} {% endfor %} -F a3&0x2000 -k priv_op
 # shmctl with SHM_LOCK or SHM_UNLOCK, where obj_euid!=euid
 -a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=11 -C obj_uid!=euid -k priv_op
 -a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=12 -C obj_uid!=euid -k priv_op
@@ -249,9 +249,11 @@
 # quotactl for cmds that aren't Q_GETQUOTA, Q_GETNEXTQUOTA, Q_GETINFO, Q_GETFMT, Q_SYNC, Q_GETSTATS, Q_XGETQUOTA, Q_XGETNEXTQUOTA, Q_XGETQSTAT, Q_XGETQSTATV, Q_XQUOTARM
 -a always,exit -F arch=b32 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k priv_op
 -a always,exit -F arch=b64 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k priv_op
-{% if kernel_ver is version('2.6.36', 'ge') %}
 # prlimit where new_limit != 0
+{% if 'prlimit64' in other_syscalls_b32 %}
 -a always,exit -F arch=b32 -S prlimit64 -F a2!=0 -k priv_op
+{% endif %}
+{% if 'prlimit64' in other_syscalls_b32 %}
 -a always,exit -F arch=b64 -S prlimit64 -F a2!=0 -k priv_op
 {% endif %}
 
