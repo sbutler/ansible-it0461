@@ -15,7 +15,7 @@
 -w /etc/audisp/ -p wa -k audispconfig
 
 ## Monitor for use of audit management tools
-{% for f in auditd_bins.files if f.isreg %}
+{% for f in auditd_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k audittools
 {% endfor %}
 
@@ -23,7 +23,7 @@
 -w /etc/auditbeat/auditbeat.yml -p wa -k auditbeatconfig
 -w /etc/auditbeat/audit.rules.d/ -p wa -k auditbeatconfig
 -w /var/log/auditbeat/ -k auditbeatlog
-{% for f in auditbeat_bins.files if f.isreg %}
+{% for f in auditbeat_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k auditbeattools
 {% endfor %}
 
@@ -85,12 +85,12 @@
 -w /etc/cron.monthly/ -p wa -k cron
 -w /etc/cron.weekly/ -p wa -k cron
 -w /etc/crontab -p wa -k cron
-{% for d in crontab_spool.files if d.isdir %}
+{% for d in crontab_spool.files|sort(attribute='path') if d.isdir %}
 -w {{ d.path }}/ -p wa -k cron
 {% else %}
 -w /var/spool/cron/ -p wa -k cron
 {% endfor %}
-{% for d in atjob_spool.files if d.isdir %}
+{% for d in atjob_spool.files|sort(attribute='path') if d.isdir %}
 -w {{ d.path }}/ -p wa -k atjob
 {% endfor %}
 
@@ -109,13 +109,13 @@
 
 ## Passwd
 # IT04.6.1 K
-{% for f in passwd_bins.files if f.isreg %}
+{% for f in passwd_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k passwd_modification
 {% endfor %}
 
 ## Tools to change group identifiers
 # IT04.6.1 B, C
-{% for f in usergroup_bins.files if f.isreg %}
+{% for f in usergroup_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k {% if 'group' in f.path %}group{% else %}user{% endif %}_modification
 {% endfor %}
 
@@ -133,7 +133,7 @@
 -w /etc/hosts -p wa -k network_modifications
 -w /etc/hosts.allow -p wa -k network_modifications
 -w /etc/hosts.deny -p wa -k network_modifications
-{% for f in network_confs.files if (f.isreg or f.isdir) %}
+{% for f in network_confs.files|sort(attribute='path') if (f.isreg or f.isdir) %}
 -w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k network_modifications
 {% endfor %}
 ### Changes to issue
@@ -142,17 +142,17 @@
 
 ## Network commands
 # IT04.6.1 J, M
-{% for f in network_bins.files if f.isreg %}
+{% for f in network_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k network_modifications
 {% endfor %}
 
 {% if 'firewalld' in packages %}
 ## Firewalld
 # IP04.6.1 J, M
-{% for f in firewalld_confs.files if (f.isreg or f.isdir) %}
+{% for f in firewalld_confs.files|sort(attribute='path') if (f.isreg or f.isdir) %}
 -w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k firewall_modifications
 {% endfor %}
-{% for f in firewalld_bins.files if f.isreg %}
+{% for f in firewalld_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k firewall_modifications
 {% endfor %}
 {% endif %}
@@ -160,7 +160,7 @@
 ## System startup scripts
 # IT04.6.1 H
 -w /etc/inittab -p wa -k init
-{% for d in startupscript_dirs.files if d.isdir %}
+{% for d in startupscript_dirs.files|sort(attribute='path') if d.isdir %}
 -w {{ d.path }}/ -p wa -k init
 {% endfor %}
 
@@ -179,7 +179,7 @@
 -w /etc/systemd/ -p wa -k systemd
 -w /usr/lib/systemd/system -p wa -k systemd
 -w /usr/lib/systemd/user -p wa -k systemd
-{% for f in systemd_bins.files if f.isreg %}
+{% for f in systemd_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k systemd
 {% endfor %}
 {% endif %}
@@ -190,13 +190,13 @@
 
 ## Process ID change (switching accounts) applications
 # IT04.6.1 G
-{% for f in susudo_bins.files if f.isreg %}
+{% for f in susudo_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p x -k priv_esc
 {% endfor %}
 
 ## Power state
 # IT04.6.1 I
-{% for f in powerstate_bins.files if f.isreg %}
+{% for f in powerstate_bins.files|sort(attribute='path') if f.isreg %}
 -w {{ f.path }} -p -x -k power
 {% endfor %}
 
