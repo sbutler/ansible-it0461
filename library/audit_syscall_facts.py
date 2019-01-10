@@ -88,12 +88,12 @@ def main():
     def _test_syscall(arch, name):
         args = list(a_args)
         args.extend(['-F', 'arch={0}'.format(arch), '-S', name])
-        rc, out, err = module.run_command(args, use_unsafe_shell=False, encoding=None)
+        rc, out, err = module.run_command(args, use_unsafe_shell=False)
 
         if rc == 0:
             args = list(d_args)
             args.extend(['-F', 'arch={0}'.format(arch), '-S', name])
-            module.run_command(args, use_unsafe_shell=False, encoding=None)
+            module.run_command(args, use_unsafe_shell=False)
         else:
             m = SYSCALL_FAILED_RE.search(err)
             if not m:
