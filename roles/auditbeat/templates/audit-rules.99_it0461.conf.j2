@@ -39,8 +39,8 @@
 -a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
 -a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
 # Changing the process GID/UID to root, third argument
--a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
--a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a2=0 -k priv_esc
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a2=0 -k priv_esc
 
 ## Privileged operation
 # IT04.6.1 G
