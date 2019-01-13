@@ -3,4 +3,4 @@ output.file:
   filename: events.json
   #rotate_every_kb: 10240
   #number_of_files: 7
-  #permissions: 0600
+  permissions: 0640
