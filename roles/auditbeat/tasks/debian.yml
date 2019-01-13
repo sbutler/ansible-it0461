@@ -1,19 +1,19 @@
-- name: auditbeat - import elastic.co apt gpg key
+- name: auditbeat - debian - import elastic.co gpg key
   apt_key:
       url: https://packages.elastic.co/GPG-KEY-elasticsearch
       state: present
-- name: auditbeat - install apt HTTPS transport
+- name: auditbeat - debian - install apt HTTPS transport
   package:
       name: apt-transport-https
       state: present
-- name: auditbeat - add elastic.co apt repository
+- name: auditbeat - debian - add elastic.co repository
   apt_repository:
       filename: elastic-6.x.list
       repo: deb https://artifacts.elastic.co/packages/6.x/apt stable main
       update_cache: yes
       state: present
 
-- name: auditbeat - install auditd
+- name: auditbeat - debian - install auditd
   package:
       name: auditd
       state: present
