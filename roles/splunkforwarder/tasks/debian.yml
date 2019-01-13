@@ -1,0 +1,22 @@
+- name: splunkforwarder - debian
+  block:
+      - name: splunkforwarder - debian - temp file
+        tempfile:
+            prefix: splunkforwarder-
+            suffix: .deb
+        register: splunkfwd_tmpfile
+      - name: splunkforwarder - debian - download
+        uri:
+            url: "{{ splunkforwarder_deb_url }}"
+            dest: "{{ splunkfwd_tmpfile.path }}"
+      - name: splunkforwarder - debian - install
+        apt:
+            deb: "{{ splunkfwd_tmpfile.path }}"
+            state: present
+  always:
+      - name: splunkforwarder - debian - delete temp file
+        file:
+            path: "{{ splunkfwd_tmpfile.path }}"
+            state: absent
+        when: splunkfwd_tmpfile.path
+  when: not 'splunkforwarder' in packages

@@ -1,0 +1,110 @@
+- name: splunkforwarder - get installed packages
+  package_facts:
+
+- import_tasks: redhat.yml
+  when: ansible_os_family == 'RedHat'
+- import_tasks: debian.yml
+  when: ansible_os_family == 'Debian'
+- import_tasks: suse.yml
+  when: ansible_os_family == 'Suse'
+
+- name: splunkforwarder - find /var/log files and directories
+  find:
+      paths: [ /var/log ]
+      file_type: any
+      recurse: yes
+  register: splunkfwd_varlog
+- name: splunkforwarder - set /var/log acls
+  acl:
+      entity: splunk
+      etype: user
+      path: "{{ item.path }}"
+      permissions: r{% if item.isdir %}x{% endif %}
+      recursive: no
+      state: present
+  with_items: "{{ splunkfwd_varlog.files }}"
+  loop_control:
+      label: "{{ item.path }}"
+- name: splunkforwarder - set /var/log default acls
+  acl:
+      entity: splunk
+      etype: user
+      default: yes
+      path: "{{ item.path }}"
+      permissions: r
+      recursive: no
+      state: present
+  with_items: "{{ splunkfwd_varlog.files }}"
+  when: item.isdir
+  loop_control:
+      label: "{{ item.path }}"
+
+- name: splunkforwarder - initial startup
+  splunk:
+      command: start --accept-license --no-prompt --answer-yes --seed-passwd "{{ splunkforwarder_admin_passwd }}"
+      creates: /opt/splunkforwarder/etc/passwd
+  become: yes
+  become_user: splunk
+
+- name: splunkforwarder - create splunkd unit file
+  copy:
+      dest: /etc/systemd/system/splunkd.service
+      owner: root
+      group: root
+      mode: 0644
+      content: |
+          [Unit]
+          Description=Splunk Universal Forwarder
+          After=network.target
+          Wants=network.target
+
+          [Service]
+          Type=forking
+          RemainAfterExit=False
+          User=splunk
+          Group=splunk
+          LimitNOFILE=65536
+          ExecStart=/opt/splunkforwarder/bin/splunk start --answer-yes --no-prompt
+          ExecStop=/opt/splunkforwarder/bin/splunk stop
+          PIDFile=/opt/splunkforwarder/var/run/splunk/splunkd.pid
+
+          [Install]
+          WantedBy=multi-user.target
+  notify: daemon-reload systemd
+
+- name: splunkforwarder - get apps
+  splunk_app_facts:
+      username: admin
+      password: "{{ splunkforwarder_admin_passwd }}"
+  become: yes
+  become_user: splunk
+- name: splunkforwarder - deployment client
+  block:
+      - name: splunkforwarder - deployment client - temp file
+        tempfile:
+            prefix: splunk-deploymentclient-
+            suffix: .spl
+        register: splunkfwd_tmpfile
+      - name: splunkforwarder - deployment client - download
+        uri:
+            url: "{{ splunkforwarder_deploymentclient_url }}"
+            dest: "{{ splunkfwd_tmpfile.path }}"
+      - name: splunkforwarder - deployment client - install
+        splunk:
+            command: install app "{{ splunkfwd_tmpfile.path }}"
+            username: admin
+            password: "{{ splunkforwarder_admin_passwd }}"
+      - name: splunkforwarder - deployment client - restart
+        splunk:
+            command: restart
+            username: admin
+            password: "{{ splunkforwarder_admin_passwd }}"
+  always:
+      - name: splunkforwarder - deployment client - remove temp file
+        file:
+            path: "{{ splunkfwd_tmpfile.path }}"
+            state: absent
+        when: splunkfwd_tmpfile.path
+  when: not splunk_apps.keys()|select('match', 'illinois-deploymentclient-.*')|list
+  become: yes
+  become_user: splunk

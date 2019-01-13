@@ -1,0 +1,4 @@
+---
+    splunkforwarder_deb_url: https://go.illinois.edu/splunk-uf-linux-deb-current
+    splunkforwarder_rpm_url: https://go.illinois.edu/splunk-uf-linux-rpm-current
+    splunkforwarder_deploymentclient_url: https://go.illinois.edu/default-deployment-server

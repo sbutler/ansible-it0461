@@ -1,0 +1,23 @@
+- name: splunkforwarder - suse
+  block:
+      - name: splunkforwarder - suse - temp file
+        tempfile:
+            prefix: splunkforwarder-
+            suffix: .rpm
+        register: splunkfwd_tmpfile
+      - name: splunkforwarder - suse - download
+        uri:
+            url: "{{ splunkforwarder_rpm_url }}"
+            dest: "{{ splunkfwd_tmpfile.path }}"
+      - name: splunkforwarder - suse - install
+        zypper:
+            name: "{{ splunkfwd_tmpfile.path }}"
+            disable_gpg_check: yes
+            state: present
+  always:
+      - name: splunkforwarder - suse - delete temp file
+        file:
+            path: "{{ splunkfwd_tmpfile.path }}"
+            state: absent
+        when: splunkfwd_tmpfile.path
+  when: not 'splunkforwarder' in packages

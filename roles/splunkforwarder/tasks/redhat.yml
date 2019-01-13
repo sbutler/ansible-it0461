@@ -1,0 +1,22 @@
+- name: splunkforwarder - redhat
+  block:
+      - name: splunkforwarder - redhat - temp file
+        tempfile:
+            prefix: splunkforwarder-
+            suffix: .rpm
+        register: splunkfwd_tmpfile
+      - name: splunkforwarder - redhat - download
+        uri:
+            url: "{{ splunkforwarder_rpm_url }}"
+            dest: "{{ splunkfwd_tmpfile.path }}"
+      - name: splunkforwarder - redhat - install
+        yum:
+            name: "{{ splunkfwd_tmpfile.path }}"
+            state: present
+  always:
+      - name: splunkforwarder - redhat - delete temp file
+        file:
+            path: "{{ splunkfwd_tmpfile.path }}"
+            state: absent
+        when: splunkfwd_tmpfile.path
+  when: not 'splunkforwarder' in packages
