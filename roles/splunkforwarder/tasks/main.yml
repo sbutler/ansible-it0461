@@ -125,3 +125,79 @@
   when: not splunk_apps.keys()|select('match', 'illinois-deploymentclient-.*')|list
   become: yes
   become_user: splunk
+
+- name: splunkforwarder - find linux_messages_syslog files
+  find:
+      paths: [ /var/log ]
+      file_type: file
+      recurse: no
+      patterns:
+          - daemon.log
+          - debug
+          - cron
+          - cron.log
+          - kern.log
+          - messages
+          - localmessages
+          - syslog
+          - user.log
+          - warn
+  register: inputs_linux_messages_syslog
+- name: splunkforwarder - find linux_secure
+  find:
+      paths: [ /var/log ]
+      file_type: file
+      recurse: no
+      patterns:
+          - secure
+          - auth.log
+  register: inputs_linux_secure
+- name: splunkforwarder - find linux_bootlog
+  find:
+      paths: [ /var/log ]
+      file_type: file
+      recurse: no
+      patterns:
+          - boot.log
+  register: inputs_linux_bootlog
+- name: splunkforwarder - find linux_audit
+  find:
+      paths: [ /var/log/audit ]
+      file_type: file
+      recurse: no
+      patterns:
+          - audit.log
+  register: inputs_linux_audit
+- name: splunkforwarder - find auditbeat_json
+  find:
+      paths: [ /var/log/auditbeat ]
+      file_type: file
+      recurse: no
+      patterns:
+          - events.json
+  register: inputs_auditbeat_json
+
+- name: splunkforwarder - copy app illinois-it0461
+  copy:
+      src: ../files/splunkapp-illinois-it0461/
+      dest: /opt/splunkforwarder/etc/apps/illinois-it0461-99/
+      directory_mode: 0700
+      owner: splunk
+      group: splunk
+      mode: 0640
+  notify: restart splunkd
+- name: splunkforwarder - create app illinois-it0461/local
+  file:
+      path: /opt/splunkforwarder/etc/apps/illinois-it0461-99/local
+      owner: splunk
+      group: splunk
+      mode: 0700
+      state: directory
+- name: splunkforwarder - customize inputs.conf
+  template:
+      src: ../templates/splunkapp-illinois-it0461/inputs.conf.j2
+      dest: /opt/splunkforwarder/etc/apps/illinois-it0461-99/local/inputs.conf
+      owner: splunk
+      group: splunk
+      mode: 0640
+  notify: restart splunkd

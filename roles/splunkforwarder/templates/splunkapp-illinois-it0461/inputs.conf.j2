@@ -1,0 +1,31 @@
+{% for f in inputs_linux_messages_syslog.files|sort(attribute='path') %}
+[monitor://{{ f.path }}*]
+sourcetype = linux_messages_syslog
+ignoreOlderThan = 7d
+{% endfor %}
+
+
+{% for f in inputs_linux_bootlog.files|sort(attribute='path') %}
+[monitor://{{ f.path }}*]
+sourcetype = linux_bootlog
+ignoreOlderThan = 7d
+{% endfor %}
+
+
+{% for f in inputs_linux_secure.files|sort(attribute='path') %}
+[monitor://{{ f.path }}*]
+sourcetype = linux_secure
+ignoreOlderThan = 7d
+{% endfor %}
+
+{% for f in inputs_linux_audit.files|sort(attribute='path') %}
+[monitor://{{ f.path }}*]
+sourcetype = linux_audit
+ignoreOlderThan = 7d
+{% endfor %}
+
+{% for f in inputs_auditbeat_json.files|sort(attribute='path') %}
+[monitor://{{ f.path }}*]
+sourcetype = auditbeat_json
+ignoreOlderThan = 7d
+{% endfor %}
