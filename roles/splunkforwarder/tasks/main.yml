@@ -18,6 +18,14 @@
   acl:
       entity: splunk
       etype: user
+      path: /var/log
+      permissions: rx
+      recursive: no
+      state: present
+- name: splunkforwarder - set /var/log/ acls
+  acl:
+      entity: splunk
+      etype: user
       path: "{{ item.path }}"
       permissions: r{% if item.isdir %}x{% endif %}
       recursive: no
@@ -26,6 +34,15 @@
   loop_control:
       label: "{{ item.path }}"
 - name: splunkforwarder - set /var/log default acls
+  acl:
+      entity: splunk
+      etype: user
+      default: yes
+      path: /var/log
+      permissions: r
+      recursive: no
+      state: present
+- name: splunkforwarder - set /var/log/ default acls
   acl:
       entity: splunk
       etype: user
