@@ -240,7 +240,7 @@
       recurse: no
       follow: no
       file_type: any
-      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try, wicked, ethtool ]
+      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, route, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try, wicked, ethtool ]
   register: network_bins
 - name: auditbeat - find network configurations
   find:
