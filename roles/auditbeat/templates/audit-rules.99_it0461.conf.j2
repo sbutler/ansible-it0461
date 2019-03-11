@@ -74,6 +74,11 @@
 -a always,exit -F arch=b64 -S prlimit64 -F a2!=0 -k priv_op
 {% endif %}
 
+# Permission modifications
+# IT04.6.1 F
+-a always,exit -F arch=b32 {% for s in permmod_syscalls_b32 %}-S {{ s }} {% endfor %} -k perm_mod
+-a always,exit -F arch=b64 {% for s in permmod_syscalls_b64 %}-S {{ s }} {% endfor %} -k perm_mod
+
 ## Root command executions
 # IT04.6.1 G
 # -a exit,always -F arch=b64 -F euid=0 -S execve -k rootcmd

@@ -112,6 +112,29 @@
       ugidset_syscalls_b32: "{{ syscalls_b32|sort }}"
       ugidset_syscalls_b64: "{{ syscalls_b64|sort }}"
 
+- name: auditbeat - test for permission modification syscalls
+  audit_syscall_facts:
+      syscalls:
+        - chmod
+        - fchmod
+        - fchmodat
+        - chown
+        - chown32
+        - fchown
+        - fchown32
+        - fchownat
+        - lchown
+        - removexattr
+        - fremovexattr
+        - lremovexattr
+        - setxattr
+        - fsetxattr
+        - lsetxattr
+- name: auditbeat - set permission modification syscall facts
+  set_fact:
+      permmod_syscalls_b32: "{{ syscalls_b32|sort }}"
+      permmod_syscalls_b64: "{{ syscalls_b64|sort }}"
+
 - name: auditbeat - test for other syscalls
   audit_syscall_facts:
       syscalls:
