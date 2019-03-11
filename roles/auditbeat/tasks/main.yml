@@ -307,6 +307,14 @@
       file_type: directory
       patterns: [ atjobs, at ]
   register: atjob_spool
+- name: auditbeat - find vmtoolsd binaries
+  find:
+      paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
+      recurse: no
+      follow: no
+      file_type: any
+      patterns: [ vmtoolsd ]
+  register: vmtooolsd_bins
 
 - name: auditbeat - generate IT04.6.1 audit rules
   template:

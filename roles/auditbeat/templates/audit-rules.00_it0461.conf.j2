@@ -51,6 +51,9 @@
 {% if 'systemd-timesync' in getent_passwd %}
 -a never,exit -F arch=b64 -S adjtimex -F auid=unset -F uid=systemd-timesync
 {% endif %}
+{% for f in vmtooolsd_bins.files|sort(attribute='path') if f.isreg %}
+-a never,exit -F arch=b64 -S adjtimex -F auid=unset -F subj_type=vmtools_t -F path={{ f.path }}
+{% endfor %}
 
 ## This is not very interesting and wastes a lot of space if the server is public facing
 -a always,exclude -F msgtype=CRYPTO_KEY_USER
