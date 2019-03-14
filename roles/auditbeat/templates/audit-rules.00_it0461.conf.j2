@@ -6,25 +6,25 @@
 
 ## Audit the audit logs
 ### Successful and unsuccessful attempts to read information from the audit records
--w /var/log/audit/ -k auditlog
+-w /var/log/audit/ -k auditlog -k it0461e
 
 ## Auditd configuration
 ### Modifications to audit configuration that occur while the audit collection functions are operating
--w /etc/audit/ -p wa -k auditconfig
--w /etc/libaudit.conf -p wa -k auditconfig
--w /etc/audisp/ -p wa -k audispconfig
+-w /etc/audit/ -p wa -k auditconfig -k it0461e
+-w /etc/libaudit.conf -p wa -k auditconfig -k it0461e
+-w /etc/audisp/ -p wa -k auditconfig -k it0461e
 
 ## Monitor for use of audit management tools
 {% for f in auditd_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k audittools
+-w {{ f.path }} -p x -k audittools -k it0461e
 {% endfor %}
 
 ## Auditbeat
--w /etc/auditbeat/auditbeat.yml -p wa -k auditbeatconfig
--w /etc/auditbeat/audit.rules.d/ -p wa -k auditbeatconfig
--w /var/log/auditbeat/ -k auditbeatlog
+-w /etc/auditbeat/auditbeat.yml -p wa -k auditconfig -k it0461e
+-w /etc/auditbeat/audit.rules.d/ -p wa -k auditconfig -k it0461e
+-w /var/log/auditbeat/ -k auditlog -k it0461e
 {% for f in auditbeat_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k auditbeattools
+-w {{ f.path }} -p x -k audittools -k it0461e
 {% endfor %}
 
 # Filters ---------------------------------------------------------------------
@@ -76,138 +76,136 @@
 ## Time
 ### Local time zone
 # IT04.6.1 N
--w /etc/localtime -p wa -k localtime
+-w /etc/localtime -p wa -k time -k it0461n
 
 ## Cron configuration & scheduled jobs
 # IT04.6.1 H
--w /etc/cron.allow -p wa -k cron
--w /etc/cron.deny -p wa -k cron
--w /etc/cron.d/ -p wa -k cron
--w /etc/cron.daily/ -p wa -k cron
--w /etc/cron.hourly/ -p wa -k cron
--w /etc/cron.monthly/ -p wa -k cron
--w /etc/cron.weekly/ -p wa -k cron
--w /etc/crontab -p wa -k cron
+-w /etc/cron.allow -p wa -k cron -k it0461h
+-w /etc/cron.deny -p wa -k cron -k it0461h
+-w /etc/cron.d/ -p wa -k cron -k it0461h
+-w /etc/cron.daily/ -p wa -k cron -k it0461h
+-w /etc/cron.hourly/ -p wa -k cron -k it0461h
+-w /etc/cron.monthly/ -p wa -k cron -k it0461h
+-w /etc/cron.weekly/ -p wa -k cron -k it0461h
+-w /etc/crontab -p wa -k cron -k it0461h
 {% for d in crontab_spool.files|sort(attribute='path') if d.isdir %}
--w {{ d.path }}/ -p wa -k cron
+-w {{ d.path }}/ -p wa -k cron -k it0461h
 {% else %}
--w /var/spool/cron/ -p wa -k cron
+-w /var/spool/cron/ -p wa -k cron -k it0461h
 {% endfor %}
 {% for d in atjob_spool.files|sort(attribute='path') if d.isdir %}
--w {{ d.path }}/ -p wa -k atjob
+-w {{ d.path }}/ -p wa -k cron -k it0461h
 {% endfor %}
 
 ## User, group, password databases
 # IT04.6.1 B, C
--w /etc/group -p wa -k etcgroup
--w /etc/passwd -p wa -k etcpasswd
--w /etc/gshadow -k etcgroup
--w /etc/shadow -k etcpasswd
--w /etc/security/opasswd -k opasswd
+-w /etc/group -p wa -k groupacct -k it0461c
+-w /etc/passwd -p wa -k useracct -k it0461b
+-w /etc/gshadow -k passwd_access -k passwd -k groupacct -k it0461c
+-w /etc/shadow -k passwd_access -k passwd -k useracct -k it0461b
+-w /etc/security/opasswd -k passwd -k groupacct -k useracct -k it0461b
 
 ## Sudoers file changes
 # IT04.6.1 F
--w /etc/sudoers -p rwa -k actions
--w /etc/sudoers.d/ -p rwa -k actions
+-w /etc/sudoers -p rwa -k privilege -k it0461f
+-w /etc/sudoers.d/ -p rwa -k privilege -k it0461f
 
 ## Passwd
 # IT04.6.1 K
 {% for f in passwd_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k passwd_modification
+-w {{ f.path }} -p x -k passwd -k useracct -k groupacct -k it0461k
 {% endfor %}
 
 ## Tools to change group identifiers
 # IT04.6.1 B, C
 {% for f in usergroup_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k {% if 'group' in f.path %}group{% else %}user{% endif %}_modification
+-w {{ f.path }} -p x {% if 'group' in f.path %}-k groupacct -k it0461c{% else %}-k useracct -k it0461b{% endif %}
 {% endfor %}
 
 ## Login configuration and information
 # IT04.6.1 A
--w /etc/login.defs -p wa -k login
--w /etc/securetty -p wa -k login
--w /var/log/faillog -p wa -k login
--w /var/log/lastlog -p wa -k login
--w /var/log/tallylog -p wa -k login
+-w /etc/login.defs -p wa -k loginconfig -k it0461a
+-w /etc/securetty -p wa -k loginconfig -k it0461a
+-w /var/log/faillog -p wa -k loginlog -k it0461a
+-w /var/log/lastlog -p wa -k loginlog -k it0461a
+-w /var/log/tallylog -p wa -k loginlog -k it0461a
 
 ## Network Environment
 # IT04.6.1 M
 ### Changes to other files
--w /etc/hosts -p wa -k network_modifications
--w /etc/hosts.allow -p wa -k network_modifications
--w /etc/hosts.deny -p wa -k network_modifications
+-w /etc/hosts -p wa -k network -k it0461m
+-w /etc/hosts.allow -p wa -k network -k it0461m
+-w /etc/hosts.deny -p wa -k network -k it0461m
 {% for f in network_confs.files|sort(attribute='path') if (f.isreg or f.isdir) %}
--w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k network_modifications
+-w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k network -k it0461m
 {% endfor %}
 ### Changes to issue
--w /etc/issue -p wa -k etcissue
--w /etc/issue.net -p wa -k etcissue
+-w /etc/issue -p wa -k network -k it0461m
+-w /etc/issue.net -p wa -k network -k it0461m
 
 ## Network commands
-# IT04.6.1 J, M
+# IT04.6.1 M
 {% for f in network_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k network_modifications
+-w {{ f.path }} -p x -k network -k it0461m
 {% endfor %}
 
-{% if 'firewalld' in packages %}
-## Firewalld
-# IP04.6.1 J, M
-{% for f in firewalld_confs.files|sort(attribute='path') if (f.isreg or f.isdir) %}
--w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k firewall_modifications
+## Firewall
+# IP04.6.1 J
+{% for f in firewall_confs.files|sort(attribute='path') if (f.isreg or f.isdir) %}
+-w {{ f.path }}{% if f.isdir %}/{% endif %} -p wa -k firewall -k network -k it0461j
 {% endfor %}
-{% for f in firewalld_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k firewall_modifications
+{% for f in firewall_bins.files|sort(attribute='path') if f.isreg %}
+-w {{ f.path }} -p x -k firewall -k network -k it0461j
 {% endfor %}
-{% endif %}
 
 ## System startup scripts
 # IT04.6.1 H
--w /etc/inittab -p wa -k init
+-w /etc/inittab -p wa -k initconfig -k it0461h
 {% for d in startupscript_dirs.files|sort(attribute='path') if d.isdir %}
--w {{ d.path }}/ -p wa -k init
+-w {{ d.path }}/ -p wa -k initconfig -k it0461h
 {% endfor %}
 
 ## Pam configuration
 # IT04.6.1 F
--w /etc/pam.d/ -p wa -k pam
--w /etc/security/ -p wa  -k pam
+-w /etc/pam.d/ -p wa -k pamconfig -k loginconfig -k it0461f
+-w /etc/security/ -p wa  -k pamconfig -k loginconfig -k it0461f
 
 ## SSH configuration
 # IT04.6.1 E, F
--w /etc/ssh/sshd_config -k sshd
+-w /etc/ssh/sshd_config -k sshd -k loginconfig -k it0461e -k it0461f
 
 {% if 'systemd' in packages %}
 # Systemd
 # IT04.6.1 I, H
--w /etc/systemd/ -p wa -k systemd
--w /usr/lib/systemd/system -p wa -k systemd
--w /usr/lib/systemd/user -p wa -k systemd
+-w /etc/systemd/ -p wa -k systemd -k it0461h
+-w /usr/lib/systemd/system -p wa -k systemd -k it0461h
+-w /usr/lib/systemd/user -p wa -k systemd -k it0461h
 {% for f in systemd_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k systemd
+-w {{ f.path }} -p x -k systemd -k it0461h
 {% endfor %}
 {% endif %}
 
 ## SELinux events that modify the system's Mandatory Access Controls (MAC)
 # IT04.6.1 F
--w /etc/selinux/ -p wa -k mac_policy
+-w /etc/selinux/ -p wa -k selinux -k it0461f
 
 ## Process ID change (switching accounts) applications
 # IT04.6.1 G
 {% for f in susudo_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p x -k priv_esc
+-w {{ f.path }} -p x -k privilege_escalation -k it0461g
 {% endfor %}
 
 ## Power state
 # IT04.6.1 I
 {% for f in powerstate_bins.files|sort(attribute='path') if f.isreg %}
--w {{ f.path }} -p -x -k power
+-w {{ f.path }} -p -x -k power -k it0461i
 {% endfor %}
 
 ## Session initiation information
 # IT04.6.1 A
--w /var/run/utmp -p wa -k session
--w /var/log/btmp -p wa -k session
--w /var/log/wtmp -p wa -k session
+-w /var/run/utmp -p wa -k session -k loginlog -k it0461a
+-w /var/log/btmp -p wa -k session -k loginlog -k it0461a
+-w /var/log/wtmp -p wa -k session -k loginlog -k it0461a
 
 # Special Rules ---------------------------------------------------------------
 
@@ -215,11 +213,11 @@
 ### These rules watch for code injection by the ptrace facility.
 ### This could indicate someone trying to do something bad or just debugging
 # IT04.6.1 G
--a always,exit -F arch=b32 -S ptrace -k tracing
--a always,exit -F arch=b64 -S ptrace -k tracing
--a always,exit -F arch=b32 -S ptrace -F a0=0x4 -k code_injection
--a always,exit -F arch=b64 -S ptrace -F a0=0x4 -k code_injection
--a always,exit -F arch=b32 -S ptrace -F a0=0x5 -k data_injection
--a always,exit -F arch=b64 -S ptrace -F a0=0x5 -k data_injection
--a always,exit -F arch=b32 -S ptrace -F a0=0x6 -k register_injection
--a always,exit -F arch=b64 -S ptrace -F a0=0x6 -k register_injection
+-a always,exit -F arch=b32 -S ptrace -k tracing -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 -S ptrace -k tracing -k privilege_escalation -k it0461g
+-a always,exit -F arch=b32 -S ptrace -F a0=0x4 -k code_injection -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 -S ptrace -F a0=0x4 -k code_injection -k privilege_escalation -k it0461g
+-a always,exit -F arch=b32 -S ptrace -F a0=0x5 -k data_injection -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 -S ptrace -F a0=0x5 -k data_injection -k privilege_escalation -k it0461g
+-a always,exit -F arch=b32 -S ptrace -F a0=0x6 -k register_injection -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 -S ptrace -F a0=0x6 -k register_injection -k privilege_escalation -k it0461g

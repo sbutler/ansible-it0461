@@ -240,7 +240,6 @@
       file_type: any
       patterns: [ systemctl ]
   register: systemd_bins
-  when: "'systemd' in packages"
 - name: auditbeat - find su and sudo binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
@@ -263,7 +262,7 @@
       recurse: no
       follow: no
       file_type: any
-      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, ifconfig, route, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try, wicked, ethtool ]
+      patterns: [ ifconfig, route, ip, nmcli, netplan, netplan-generate, netplan-apply, netplan-try, wicked, ethtool ]
   register: network_bins
 - name: auditbeat - find network configurations
   find:
@@ -273,24 +272,22 @@
       file_type: any
       patterns: [ network, network-scripts, networking, netplan, networkd-dispatcher, NetworkManager, wicked ]
   register: network_confs
-- name: auditbeat - find firewalld binaries
+- name: auditbeat - find firewall binaries
   find:
       paths: [ /usr/local/sbin, /usr/local/bin, /usr/sbin, /usr/bin, /sbin, /bin, /snap/bin, /usr/local/libexec, /usr/libexec, /libexec ]
       recurse: no
       follow: no
       file_type: any
-      patterns: [ firewall-cmd, firewall-offline-cmd, firewalld ]
-  register: firewalld_bins
-  when: "'firewalld' in packages"
-- name: auditbeat - find firewalld configurations
+      patterns: [ iptables, iptables-restore, iptables-save, iptables-apply, xtables-multi, firewall-cmd, firewall-offline-cmd, firewalld ]
+  register: firewall_bins
+- name: auditbeat - find firewall configurations
   find:
       paths: [ /etc, /etc/sysconfig, /etc/default, /usr/lib ]
       recurse: no
       follow: no
       file_type: any
       patterns: [ firewalld ]
-  register: firewalld_confs
-  when: "'firewalld' in packages"
+  register: firewall_confs
 - name: auditbeat - find crontab spool
   find:
       paths: [ /var/spool/cron ]

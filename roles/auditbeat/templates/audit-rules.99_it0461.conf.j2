@@ -4,82 +4,82 @@
 
 ## Time
 # IT04.6.1 N
--a exit,always -F arch=b32 {% for s in time_syscalls_b32 %}-S {{ s }} {% endfor %} -k time
--a exit,always -F arch=b64 {% for s in time_syscalls_b64 %}-S {{ s }} {% endfor %} -k time
+-a exit,always -F arch=b32 {% for s in time_syscalls_b32 %}-S {{ s }} {% endfor %} -k time -k it0461n
+-a exit,always -F arch=b64 {% for s in time_syscalls_b64 %}-S {{ s }} {% endfor %} -k time -k it0461n
 
 ## Network Environment
 # IT04.6.1 M
 ### Changes to hostname
--a always,exit -F arch=b32 -S sethostname -S setdomainname -k network_modifications
--a always,exit -F arch=b64 -S sethostname -S setdomainname -k network_modifications
+-a always,exit -F arch=b32 -S sethostname -S setdomainname -k network -k it0461m
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -k network -k it0461m
 ### Calls to bpf
 {% if 'bpf' in other_syscalls_b32 %}
--a always,exit -F arch=b32 -S bpf -k network_modifications
+-a always,exit -F arch=b32 -S bpf -k network -k it0461m
 {% endif %}
 {% if 'bpf' in other_syscalls_b64 %}
--a always,exit -F arch=b64 -S bpf -k network_modifications
+-a always,exit -F arch=b64 -S bpf -k network -k it0461m
 {% endif %}
 
 ## Process ID change (switching accounts) applications
 # IT04.6.1 G
 # Group or Linux Capabilities change
--a always,exit -F arch=b32 {% for s in privesc_syscalls_b32 %}-S {{ s }} {% endfor %} -k priv_esc
--a always,exit -F arch=b64 {% for s in privesc_syscalls_b64 %}-S {{ s }} {% endfor %} -k priv_esc
+-a always,exit -F arch=b32 {% for s in privesc_syscalls_b32 %}-S {{ s }} {% endfor %} -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 {% for s in privesc_syscalls_b64 %}-S {{ s }} {% endfor %} -k privilege_escalation -k it0461g
 # Look for prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, ...)
 {% if 'prctl' in other_syscalls_b32 %}
--a always,exit -F arch=b32 -S prctl -F a0=47 -F a1=2 -k priv_esc
+-a always,exit -F arch=b32 -S prctl -F a0=47 -F a1=2 -k privilege_escalation -k it0461g
 {% endif %}
 {% if 'prctl' in other_syscalls_b64 %}
--a always,exit -F arch=b64 -S prctl -F a0=47 -F a1=2 -k priv_esc
+-a always,exit -F arch=b64 -S prctl -F a0=47 -F a1=2 -k privilege_escalation -k it0461g
 {% endif %}
 # Changing the process GID/UID to root, first argument
--a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 %}-S {{ s }} {% endfor %} -F a0=0 -k priv_esc
--a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 %}-S {{ s }} {% endfor %} -F a0=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 %}-S {{ s }} {% endfor %} -F a0=0 -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 %}-S {{ s }} {% endfor %} -F a0=0 -k privilege_escalation -k it0461g
 # Changing the process GID/UID to root, second argument
--a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
--a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setre') %}-S {{ s }} {% endfor %} -F a1=0 -k privilege_escalation -k it0461g
 # Changing the process GID/UID to root, third argument
--a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a2=0 -k priv_esc
--a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a2=0 -k priv_esc
+-a always,exit -F arch=b32 {% for s in ugidset_syscalls_b32 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a2=0 -k privilege_escalation -k it0461g
+-a always,exit -F arch=b64 {% for s in ugidset_syscalls_b64 if s.startswith('setres') %}-S {{ s }} {% endfor %} -F a2=0 -k privilege_escalation -k it0461g
 
 ## Privileged operation
 # IT04.6.1 G
--a always,exit -F arch=b32 {% for s in simple_syscalls_b32 %}-S {{ s }} {% endfor %} -k priv_op
--a always,exit -F arch=b64 {% for s in simple_syscalls_b64 %}-S {{ s }} {% endfor %} -k priv_op
+-a always,exit -F arch=b32 {% for s in simple_syscalls_b32 %}-S {{ s }} {% endfor %} -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 {% for s in simple_syscalls_b64 %}-S {{ s }} {% endfor %} -k privilege_operation -k it0461g
 # mmap with MAP_LOCKED set
--a always,exit -F arch=b32 {% for s in mmap_syscalls_b32 %}-S {{ s }} {% endfor %} -F a3&0x2000 -k priv_op
--a always,exit -F arch=b64 {% for s in mmap_syscalls_b64 %}-S {{ s }} {% endfor %} -F a3&0x2000 -k priv_op
+-a always,exit -F arch=b32 {% for s in mmap_syscalls_b32 %}-S {{ s }} {% endfor %} -F a3&0x2000 -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 {% for s in mmap_syscalls_b64 %}-S {{ s }} {% endfor %} -F a3&0x2000 -k privilege_operation -k it0461g
 # shmctl with SHM_LOCK or SHM_UNLOCK, where obj_euid!=euid
--a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=11 -C obj_uid!=euid -k priv_op
--a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=12 -C obj_uid!=euid -k priv_op
--a always,exit -F arch=b64 -S shmctl       -F a1=11 -C obj_uid!=euid -k priv_op
--a always,exit -F arch=b64 -S shmctl       -F a1=12 -C obj_uid!=euid -k priv_op
+-a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=11 -C obj_uid!=euid -k privilege_operation -k it0461g
+-a always,exit -F arch=b32 -S ipc -F a0=24 -F a2=12 -C obj_uid!=euid -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 -S shmctl       -F a1=11 -C obj_uid!=euid -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 -S shmctl       -F a1=12 -C obj_uid!=euid -k privilege_operation -k it0461g
 # socket that's AF_PACKET or PF_PACKET
--a always,exit -F arch=b32 -S socket -F a0=17 -k priv_op
--a always,exit -F arch=b64 -S socket -F a0=17 -k priv_op
+-a always,exit -F arch=b32 -S socket -F a0=17 -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 -S socket -F a0=17 -k privilege_operation -k it0461g
 # socket that's SOCK_RAW
--a always,exit -F arch=b32 -S socket -F a1=3 -k priv_op
--a always,exit -F arch=b64 -S socket -F a1=3 -k priv_op
+-a always,exit -F arch=b32 -S socket -F a1=3 -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 -S socket -F a1=3 -k privilege_operation -k it0461g
 # socket that's SOCK_PACKET
--a always,exit -F arch=b32 -S socket -F a1=10 -k priv_op
--a always,exit -F arch=b64 -S socket -F a1=10 -k priv_op
+-a always,exit -F arch=b32 -S socket -F a1=10 -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 -S socket -F a1=10 -k privilege_operation -k it0461g
 # quotactl for cmds that aren't Q_GETQUOTA, Q_GETNEXTQUOTA, Q_GETINFO, Q_GETFMT, Q_SYNC, Q_GETSTATS, Q_XGETQUOTA, Q_XGETNEXTQUOTA, Q_XGETQSTAT, Q_XGETQSTATV, Q_XQUOTARM
--a always,exit -F arch=b32 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k priv_op
--a always,exit -F arch=b64 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k priv_op
+-a always,exit -F arch=b32 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k privilege_operation -k it0461g
+-a always,exit -F arch=b64 -S quotactl -F a0!=0x800007 -F a0!=0x800009 -F a0!=0x800005 -F a0!=0x800004 -F a0!=0x800001 -F a0!=0x000800 -F a0!=0x008803 -F a0!=0x008809 -F a0!=0x008805 -F a0!=0x008808 -F a0!=0x008806 -F a0!=0x0088 -k privilege_operation -k it0461g
 # prlimit where new_limit != 0
 {% if 'prlimit64' in other_syscalls_b32 %}
--a always,exit -F arch=b32 -S prlimit64 -F a2!=0 -k priv_op
+-a always,exit -F arch=b32 -S prlimit64 -F a2!=0 -k privilege_operation -k it0461g
 {% endif %}
 {% if 'prlimit64' in other_syscalls_b32 %}
--a always,exit -F arch=b64 -S prlimit64 -F a2!=0 -k priv_op
+-a always,exit -F arch=b64 -S prlimit64 -F a2!=0 -k privilege_operation -k it0461g
 {% endif %}
 
 # Permission modifications
 # IT04.6.1 F
--a always,exit -F arch=b32 {% for s in permmod_syscalls_b32 %}-S {{ s }} {% endfor %} -k perm_mod
--a always,exit -F arch=b64 {% for s in permmod_syscalls_b64 %}-S {{ s }} {% endfor %} -k perm_mod
+-a always,exit -F arch=b32 {% for s in permmod_syscalls_b32 %}-S {{ s }} {% endfor %} -k permission -k it0461f
+-a always,exit -F arch=b64 {% for s in permmod_syscalls_b64 %}-S {{ s }} {% endfor %} -k permission -k it0461f
 
 ## Root command executions
 # IT04.6.1 G
-# -a exit,always -F arch=b64 -F euid=0 -S execve -k rootcmd
-# -a exit,always -F arch=b32 -F euid=0 -S execve -k rootcmd
+# -a exit,always -F arch=b64 -F euid=0 -S execve -k rootcmd -k it0461g
+# -a exit,always -F arch=b32 -F euid=0 -S execve -k rootcmd -k it0461g
